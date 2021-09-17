@@ -473,6 +473,11 @@ c
          read (string,*,err=10,end=10)  w5scale
          if (w5scale .gt. 1.0d0)  w5scale = 1.0d0 / w5scale
 c
+c     set flag for exchind
+c
+      else if (keyword(1:9) .eq. 'EXCH-IND ') then
+         exchind = .true.
+c
 c     set control parameters for charge transfer potentials
 c
       else if (keyword(1:15) .eq. 'CHARGETRANSFER ') then

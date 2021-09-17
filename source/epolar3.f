@@ -18,13 +18,18 @@ c
 c
       subroutine epolar3
       use limits
+      use polpot
       implicit none
       logical pairwise
 c
 c
 c     choose the method for summing over polarization interactions
 c
-      pairwise = .true.
+      if (exchind) then
+         pairwise = .false.
+      else
+         pairwise = .true.
+      end if
       if (pairwise) then
          if (use_ewald) then
             if (use_mlist) then

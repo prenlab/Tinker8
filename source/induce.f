@@ -581,6 +581,9 @@ c
       use polgrp
       use polpot
       use shunt
+c     modules for exchind
+      use chgpot
+      use repel
       implicit none
       integer i,j,k,m
       integer ii,kk
@@ -610,6 +613,14 @@ c
       real*8 field(3,*)
       real*8 fieldp(3,*)
       character*6 mode
+c     variables for exchind
+      real*8 f
+      real*8 rrr1,rrr3,rrr5,rrr7,rrr9,rrr11
+      real*8 rsizi,rsizk,rsizik
+      real*8 rvali,rvalk
+      real*8 rdmpi,rdmpk
+      real*8 rdmpik(9)
+      real*8 rep1x,rep1y,rep1z,rep2x,rep2y,rep2z
 c
 c
 c     zero out the value of the field at each site
@@ -621,8 +632,9 @@ c
          end do
       end do
 c
-c     set the switching function coefficients
+c     set conversion factor and switching function coefficients
 c
+      f = sqrt(electric/dielec)
       mode = 'MPOLE'
       call switch (mode)
 c
@@ -656,6 +668,11 @@ c
             corei = pcore(ii)
             vali = pval(ii)
             alphai = palpha(ii)
+         end if
+         if (exchind) then
+            rsizi = sizpr(ii) / f
+            rdmpi = dmppr(ii)
+            rvali = elepr(ii)
          end if
 c
 c     set exclusion coefficients for connected atoms
@@ -825,6 +842,37 @@ c
                   fkd(3) = zr*(rr3*corei + rr3i*vali
      &                        + rr5i*dir + rr7i*qir)
      &                        - rr3i*diz - 2.0d0*rr5i*qiz
+                  if (exchind) then
+                     rsizk = sizpr(kk) / f
+                     rdmpk = dmppr(kk)
+                     rvalk = elepr(kk)
+                     rrr1 = 1.0d0 / r
+                     rrr3 = rr3
+                     rrr5 = rr5
+                     rrr7 = rr7
+                     rrr9 = 7.0d0 * rr7 / r2
+                     call damprep (r,r2,rrr1,rrr3,rrr5,rrr7,rrr9,rrr11,
+     &                             9,rdmpi,rdmpk,rdmpik)
+                     rsizik = rsizi*rsizk
+                     fid(1) = fid(1) + rsizik*(-xr*(rdmpik(3)*rvalk
+     &                      - rdmpik(5)*dkr + rdmpik(7)*qkr)
+     &                      - rdmpik(3)*dkx + 2.0d0*rdmpik(5)*qkx)*rrr1
+                     fid(2) = fid(2) + rsizik*(-yr*(rdmpik(3)*rvalk
+     &                      - rdmpik(5)*dkr + rdmpik(7)*qkr)
+     &                      - rdmpik(3)*dky + 2.0d0*rdmpik(5)*qky)*rrr1
+                     fid(3) = fid(3) + rsizik*(-zr*(rdmpik(3)*rvalk
+     &                      - rdmpik(5)*dkr + rdmpik(7)*qkr)
+     &                      - rdmpik(3)*dkz + 2.0d0*rdmpik(5)*qkz)*rrr1
+                     fkd(1) = fkd(1) + rsizik*(xr*(rdmpik(3)*rvali
+     &                      + rdmpik(5)*dir + rdmpik(7)*qir)
+     &                      - rdmpik(3)*dix - 2.0d0*rdmpik(5)*qix)*rrr1
+                     fkd(2) = fkd(2) + rsizik*(yr*(rdmpik(3)*rvali
+     &                      + rdmpik(5)*dir + rdmpik(7)*qir)
+     &                      - rdmpik(3)*diy - 2.0d0*rdmpik(5)*qiy)*rrr1
+                     fkd(3) = fkd(3) + rsizik*(zr*(rdmpik(3)*rvali
+     &                      + rdmpik(5)*dir + rdmpik(7)*qir)
+     &                      - rdmpik(3)*diz - 2.0d0*rdmpik(5)*qiz)*rrr1
+                  end if
                end if
 c
 c     increment the direct electrostatic field components
@@ -1181,6 +1229,9 @@ c
       use polgrp
       use polpot
       use shunt
+c     modules for exchind
+      use chgpot
+      use repel
       implicit none
       integer i,j,k,m
       integer ii,kk
@@ -1203,6 +1254,12 @@ c
       real*8 field(3,*)
       real*8 fieldp(3,*)
       character*6 mode
+c     variables for exchind
+      real*8 f
+      real*8 rsizi,rsizk,rsizik
+      real*8 rrr1,rrr3, rrr5,rrr7,rrr9,rrr11
+      real*8 rdmpi,rdmpk
+      real*8 rdmpik(9)
 c
 c
 c     zero out the value of the field at each site
@@ -1214,8 +1271,9 @@ c
          end do
       end do
 c
-c     set the switching function coefficients
+c     set conversion factor and switching function coefficients
 c
+      f = sqrt(electric/dielec)
       mode = 'MPOLE'
       call switch (mode)
 c
@@ -1245,6 +1303,10 @@ c
             corei = pcore(ii)
             vali = pval(ii)
             alphai = palpha(ii)
+            if (exchind) then
+               rsizi = sizpr(ii) / f
+               rdmpi = dmppr(ii)
+            end if
          end if
 c
 c     set exclusion coefficients for connected atoms
@@ -1333,6 +1395,42 @@ c
                fkp(1) = rr3*pix + rr5*pir*xr
                fkp(2) = rr3*piy + rr5*pir*yr
                fkp(3) = rr3*piz + rr5*pir*zr
+               if (exchind) then
+                  rsizk = sizpr(kk) / f
+                  rdmpk = dmppr(kk)
+                  rrr1 = 1.0d0 / r
+                  rrr3 = rrr1 / r2
+                  rrr5 = 3.0d0 * rrr3 / r2
+                  rrr7 = 5.0d0 * rrr5 / r2
+                  rrr9 = 7.0d0 * rrr7 / r2
+                  call damprep (r,r2,rrr1,rrr3,rrr5,rrr7,rrr9,rrr11,
+     &                            9,rdmpi,rdmpk,rdmpik)
+                  rsizik = rsizi*rsizk
+                  fid(1) = fid(1) + rsizik*(xr*rdmpik(5)*dkr
+     &                               - rdmpik(3)*dkx)*rrr1 * wscale(k)
+                  fid(2) = fid(2) + rsizik*(yr*rdmpik(5)*dkr
+     &                               - rdmpik(3)*dky)*rrr1 * wscale(k)
+                  fid(3) = fid(3) + rsizik*(zr*rdmpik(5)*dkr
+     &                               - rdmpik(3)*dkz)*rrr1 * wscale(k)
+                  fkd(1) = fkd(1) + rsizik*(xr*rdmpik(5)*dir
+     &                               - rdmpik(3)*dix)*rrr1 * wscale(k)
+                  fkd(2) = fkd(2) + rsizik*(yr*rdmpik(5)*dir
+     &                               - rdmpik(3)*diy)*rrr1 * wscale(k)
+                  fkd(3) = fkd(3) + rsizik*(zr*rdmpik(5)*dir
+     &                               - rdmpik(3)*diz)*rrr1 * wscale(k)
+                  fip(1) = fip(1) + rsizik*(xr*rdmpik(5)*pkr
+     &                               - rdmpik(3)*pkx)*rrr1 * wscale(k)
+                  fip(2) = fip(2) + rsizik*(yr*rdmpik(5)*pkr
+     &                               - rdmpik(3)*pky)*rrr1 * wscale(k)
+                  fip(3) = fip(3) + rsizik*(zr*rdmpik(5)*pkr
+     &                               - rdmpik(3)*pkz)*rrr1 * wscale(k)
+                  fkp(1) = fkp(1) + rsizik*(xr*rdmpik(5)*pir
+     &                               - rdmpik(3)*pix)*rrr1 * wscale(k)
+                  fkp(2) = fkp(2) + rsizik*(yr*rdmpik(5)*pir
+     &                               - rdmpik(3)*piy)*rrr1 * wscale(k)
+                  fkp(3) = fkp(3) + rsizik*(zr*rdmpik(5)*pir
+     &                               - rdmpik(3)*piz)*rrr1 * wscale(k)
+               end if
                do j = 1, 3
                   field(j,ii) = field(j,ii) + fid(j)
                   field(j,kk) = field(j,kk) + fkd(j)

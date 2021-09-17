@@ -406,6 +406,7 @@ c
       use_pred = .false.
       use_ielscf = .false.
       dpequal = .false.
+      exchind = .false.
 c
 c     set default control parameters for charge transfer terms
 c
