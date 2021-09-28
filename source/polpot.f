@@ -22,6 +22,14 @@ c     p2iscale     scale factor for 1-2 intragroup polarization energy
 c     p3iscale     scale factor for 1-3 intragroup polarization energy
 c     p4iscale     scale factor for 1-4 intragroup polarization energy
 c     p5iscale     scale factor for 1-5 intragroup polarization energy
+c     pr2scale     scale factor for 1-2 exchind energy interactions
+c     pr3scale     scale factor for 1-3 exchind energy interactions
+c     pr4scale     scale factor for 1-4 exchind energy interactions
+c     pr5scale     scale factor for 1-5 exchind energy interactions
+c     pr2iscale    scale factor for 1-2 intragroup exchind energy
+c     pr3iscale    scale factor for 1-3 intragroup exchind energy
+c     pr4iscale    scale factor for 1-4 intragroup exchind energy
+c     pr5iscale    scale factor for 1-5 intragroup exchind energy
 c     d1scale      scale factor for intra-group direct induction
 c     d2scale      scale factor for 1-2 group direct induction
 c     d3scale      scale factor for 1-3 group direct induction
@@ -34,6 +42,10 @@ c     w2scale      scale factor for 1-2 induced dipole interactions
 c     w3scale      scale factor for 1-3 induced dipole interactions
 c     w4scale      scale factor for 1-4 induced dipole interactions
 c     w5scale      scale factor for 1-5 induced dipole interactions
+c     wr2scale     scale factor for 1-2 induced exchind dipole interactions
+c     wr3scale     scale factor for 1-3 induced exchind dipole interactions
+c     wr4scale     scale factor for 1-4 induced exchind dipole interactions
+c     wr5scale     scale factor for 1-5 induced exchind dipole interactions
 c     udiag        acceleration factor for induced dipole SCF iterations
 c     polprt       flag to print summary of induced dipole iterations
 c     dpequal      flag to set dscale values equal to pscale values
@@ -51,12 +63,18 @@ c
       real*8 p4scale,p5scale
       real*8 p2iscale,p3iscale
       real*8 p4iscale,p5iscale
+      real*8 pr2scale,pr3scale
+      real*8 pr4scale,pr5scale
+      real*8 pr2iscale,pr3iscale
+      real*8 pr4iscale,pr5iscale
       real*8 d1scale,d2scale
       real*8 d3scale,d4scale
       real*8 u1scale,u2scale
       real*8 u3scale,u4scale
       real*8 w2scale,w3scale
       real*8 w4scale,w5scale
+      real*8 wr2scale,wr3scale
+      real*8 wr4scale,wr5scale
       real*8 udiag
       logical polprt
       logical dpequal

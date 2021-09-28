@@ -55,6 +55,18 @@ induce-12-scale         0.2
 induce-13-scale         1.0
 induce-14-scale         1.0
 induce-15-scale         1.0
+polarrep-12-scale       0.0
+polarrep-13-scale       0.5
+polarrep-14-scale       1.0
+polarrep-15-scale       1.0
+polarrep-12-intra       0.0
+polarrep-13-intra       0.0
+polarrep-14-intra       0.0
+polarrep-15-intra       0.5
+inducerep-12-scale      0.2
+inducerep-13-scale      1.0
+inducerep-14-scale      1.0
+inducerep-15-scale      1.0
 
 
       #############################

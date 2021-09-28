@@ -473,8 +473,44 @@ c
          read (string,*,err=10,end=10)  w5scale
          if (w5scale .gt. 1.0d0)  w5scale = 1.0d0 / w5scale
 c
-c     set flag for exchind
+c     set control parameters and flag for exchind potentials
 c
+      else if (keyword(1:18) .eq. 'POLARREP-12-SCALE ') then
+         read (string,*,err=10,end=10)  pr2scale
+         if (pr2scale .gt. 1.0d0)  pr2scale = 1.0d0 / pr2scale
+      else if (keyword(1:18) .eq. 'POLARREP-13-SCALE ') then
+         read (string,*,err=10,end=10)  pr3scale
+         if (pr3scale .gt. 1.0d0)  pr3scale = 1.0d0 / pr3scale
+      else if (keyword(1:18) .eq. 'POLARREP-14-SCALE ') then
+         read (string,*,err=10,end=10)  pr4scale
+         if (pr4scale .gt. 1.0d0)  pr4scale = 1.0d0 / pr4scale
+      else if (keyword(1:18) .eq. 'POLARREP-15-SCALE ') then
+         read (string,*,err=10,end=10)  pr5scale
+         if (pr5scale .gt. 1.0d0)  pr5scale = 1.0d0 / pr5scale
+      else if (keyword(1:18) .eq. 'POLARREP-12-INTRA ') then
+         read (string,*,err=10,end=10)  pr2iscale
+         if (pr2iscale .gt. 1.0d0)  pr2iscale = 1.0d0 / pr2iscale
+      else if (keyword(1:18) .eq. 'POLARREP-13-INTRA ') then
+         read (string,*,err=10,end=10)  pr3iscale
+         if (pr3iscale .gt. 1.0d0)  pr3iscale = 1.0d0 / pr3iscale
+      else if (keyword(1:18) .eq. 'POLARREP-14-INTRA ') then
+         read (string,*,err=10,end=10)  pr4iscale
+         if (pr4iscale .gt. 1.0d0)  pr4iscale = 1.0d0 / pr4iscale
+      else if (keyword(1:18) .eq. 'POLARREP-15-INTRA ') then
+         read (string,*,err=10,end=10)  pr5iscale
+         if (pr5iscale .gt. 1.0d0)  pr5iscale = 1.0d0 / pr5iscale
+      else if (keyword(1:19) .eq. 'INDUCEREP-12-SCALE ') then
+         read (string,*,err=10,end=10)  wr2scale
+         if (wr2scale .gt. 1.0d0)  wr2scale = 1.0d0 / wr2scale
+      else if (keyword(1:19) .eq. 'INDUCEREP-13-SCALE ') then
+         read (string,*,err=10,end=10)  wr3scale
+         if (wr3scale .gt. 1.0d0)  wr3scale = 1.0d0 / wr3scale
+      else if (keyword(1:19) .eq. 'INDUCEREP-14-SCALE ') then
+         read (string,*,err=10,end=10)  wr4scale
+         if (wr4scale .gt. 1.0d0)  wr4scale = 1.0d0 / wr4scale
+      else if (keyword(1:19) .eq. 'INDUCEREP-15-SCALE ') then
+         read (string,*,err=10,end=10)  wr5scale
+         if (wr5scale .gt. 1.0d0)  wr5scale = 1.0d0 / wr5scale
       else if (keyword(1:9) .eq. 'EXCH-IND ') then
          exchind = .true.
 c

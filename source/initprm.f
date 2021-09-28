@@ -393,6 +393,14 @@ c
       p3iscale = 0.0d0
       p4iscale = 0.5d0
       p5iscale = 1.0d0
+      pr2scale = 0.0d0
+      pr3scale = 0.5d0
+      pr4scale = 1.0d0
+      pr5scale = 1.0d0
+      pr2iscale = 0.0d0
+      pr3iscale = 0.0d0
+      pr4iscale = 0.0d0
+      pr5iscale = 0.5d0
       u1scale = 1.0d0
       u2scale = 1.0d0
       u3scale = 1.0d0
@@ -401,6 +409,10 @@ c
       w3scale = 1.0d0
       w4scale = 1.0d0
       w5scale = 1.0d0
+      wr2scale = 0.2d0
+      wr3scale = 1.0d0
+      wr4scale = 1.0d0
+      wr5scale = 1.0d0
       use_thole = .true.
       use_dirdamp = .false.
       use_pred = .false.
