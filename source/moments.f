@@ -99,6 +99,10 @@ c
          xcm(i) = x(i) - xmid
          ycm(i) = y(i) - ymid
          zcm(i) = z(i) - zmid
+c        Changes made by Moses
+         xcm(i) = x(i)
+         ycm(i) = y(i)
+         zcm(i) = z(i)
       end do
 c
 c     set the multipole moment components due to partial charges
