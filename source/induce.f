@@ -616,8 +616,7 @@ c     modules for exchind
 c     variables for exchind
       real*8 f
       real*8 frid(3),frkd(3)
-      real*8 frip(3),frkp(3)
-      real*8 rrr1,rrr3,rrr5,rrr7,rrr9,rrr11
+      real*8 rr1,rr9,rr11
       real*8 rsizi,rsizk,rsizik
       real*8 rvali,rvalk
       real*8 rdmpi,rdmpk
@@ -870,32 +869,28 @@ c
                      rsizk = sizpr(kk) / f
                      rdmpk = dmppr(kk)
                      rvalk = elepr(kk)
-                     rrr1 = 1.0d0 / r
-                     rrr3 = rr3
-                     rrr5 = rr5
-                     rrr7 = rr7
-                     rrr9 = 7.0d0 * rr7 / r2
-                     call damprep (r,r2,rrr1,rrr3,rrr5,rrr7,rrr9,rrr11,
-     &                             9,rdmpi,rdmpk,rdmpik)
+                     rr1 = 1.0d0 / r
+                     call damprep (r,r2,rr1,rr3,rr5,rr7,rr9,rr11,
+     &                             7,rdmpi,rdmpk,rdmpik)
                      rsizik = rsizi*rsizk
                      frid(1) = rsizik*(-xr*(rdmpik(3)*rvalk
      &                      - rdmpik(5)*dkr + rdmpik(7)*qkr)
-     &                      - rdmpik(3)*dkx + 2.0d0*rdmpik(5)*qkx)*rrr1
+     &                      - rdmpik(3)*dkx + 2.0d0*rdmpik(5)*qkx)*rr1
                      frid(2) = rsizik*(-yr*(rdmpik(3)*rvalk
      &                      - rdmpik(5)*dkr + rdmpik(7)*qkr)
-     &                      - rdmpik(3)*dky + 2.0d0*rdmpik(5)*qky)*rrr1
+     &                      - rdmpik(3)*dky + 2.0d0*rdmpik(5)*qky)*rr1
                      frid(3) = rsizik*(-zr*(rdmpik(3)*rvalk
      &                      - rdmpik(5)*dkr + rdmpik(7)*qkr)
-     &                      - rdmpik(3)*dkz + 2.0d0*rdmpik(5)*qkz)*rrr1
+     &                      - rdmpik(3)*dkz + 2.0d0*rdmpik(5)*qkz)*rr1
                      frkd(1) = rsizik*(xr*(rdmpik(3)*rvali
      &                      + rdmpik(5)*dir + rdmpik(7)*qir)
-     &                      - rdmpik(3)*dix - 2.0d0*rdmpik(5)*qix)*rrr1
+     &                      - rdmpik(3)*dix - 2.0d0*rdmpik(5)*qix)*rr1
                      frkd(2) = rsizik*(yr*(rdmpik(3)*rvali
      &                      + rdmpik(5)*dir + rdmpik(7)*qir)
-     &                      - rdmpik(3)*diy - 2.0d0*rdmpik(5)*qiy)*rrr1
+     &                      - rdmpik(3)*diy - 2.0d0*rdmpik(5)*qiy)*rr1
                      frkd(3) = rsizik*(zr*(rdmpik(3)*rvali
      &                      + rdmpik(5)*dir + rdmpik(7)*qir)
-     &                      - rdmpik(3)*diz - 2.0d0*rdmpik(5)*qiz)*rrr1
+     &                      - rdmpik(3)*diz - 2.0d0*rdmpik(5)*qiz)*rr1
                   end if
                end if
 c
@@ -1292,9 +1287,9 @@ c     variables for exchind
       real*8 frid(3),frkd(3)
       real*8 frip(3),frkp(3)
       real*8 rsizi,rsizk,rsizik
-      real*8 rrr1,rrr3, rrr5,rrr7,rrr9,rrr11
+      real*8 rr1
       real*8 rdmpi,rdmpk
-      real*8 rdmpik(9)
+      real*8 rdmpik(5)
       real*8, allocatable :: wrscale(:)
 c
 c
@@ -1449,38 +1444,35 @@ c
                if (exchind) then
                   rsizk = sizpr(kk) / f
                   rdmpk = dmppr(kk)
-                  rrr1 = 1.0d0 / r
-                  rrr3 = rrr1 / r2
-                  rrr5 = 3.0d0 * rrr3 / r2
-                  rrr7 = 5.0d0 * rrr5 / r2
-                  rrr9 = 7.0d0 * rrr7 / r2
-                  call damprep (r,r2,rrr1,rrr3,rrr5,rrr7,rrr9,rrr11,
-     &                            9,rdmpi,rdmpk,rdmpik)
+                  rr1 = 1.0d0 / r
+                  rr3 = rr1 / r2
+                  rr5 = 3.0d0 * rr3 / r2
+                  call damprmut (r,r2,rr1,rr3,rr5,rdmpi,rdmpk,rdmpik)
                   rsizik = rsizi*rsizk
                   frid(1) = rsizik*(xr*rdmpik(5)*dkr
-     &                      - rdmpik(3)*dkx)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*dkx)*rr1 * wrscale(k)
                   frid(2) = rsizik*(yr*rdmpik(5)*dkr
-     &                      - rdmpik(3)*dky)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*dky)*rr1 * wrscale(k)
                   frid(3) = rsizik*(zr*rdmpik(5)*dkr
-     &                      - rdmpik(3)*dkz)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*dkz)*rr1 * wrscale(k)
                   frkd(1) = rsizik*(xr*rdmpik(5)*dir
-     &                      - rdmpik(3)*dix)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*dix)*rr1 * wrscale(k)
                   frkd(2) = rsizik*(yr*rdmpik(5)*dir
-     &                      - rdmpik(3)*diy)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*diy)*rr1 * wrscale(k)
                   frkd(3) = rsizik*(zr*rdmpik(5)*dir
-     &                      - rdmpik(3)*diz)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*diz)*rr1 * wrscale(k)
                   frip(1) = rsizik*(xr*rdmpik(5)*pkr
-     &                      - rdmpik(3)*pkx)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*pkx)*rr1 * wrscale(k)
                   frip(2) = rsizik*(yr*rdmpik(5)*pkr
-     &                      - rdmpik(3)*pky)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*pky)*rr1 * wrscale(k)
                   frip(3) = rsizik*(zr*rdmpik(5)*pkr
-     &                      - rdmpik(3)*pkz)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*pkz)*rr1 * wrscale(k)
                   frkp(1) = rsizik*(xr*rdmpik(5)*pir
-     &                      - rdmpik(3)*pix)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*pix)*rr1 * wrscale(k)
                   frkp(2) = rsizik*(yr*rdmpik(5)*pir
-     &                      - rdmpik(3)*piy)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*piy)*rr1 * wrscale(k)
                   frkp(3) = rsizik*(zr*rdmpik(5)*pir
-     &                      - rdmpik(3)*piz)*rrr1 * wrscale(k)
+     &                      - rdmpik(3)*piz)*rr1 * wrscale(k)
                end if
                do j = 1, 3
                   field(j,ii) = field(j,ii) + fid(j) + frid(j)
