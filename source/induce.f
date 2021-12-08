@@ -620,8 +620,7 @@ c     variables for exchind
       real*8 rsizi,rsizk,rsizik
       real*8 rvali,rvalk
       real*8 rdmpi,rdmpk
-      real*8 rdmpik(9)
-      real*8 rep1x,rep1y,rep1z,rep2x,rep2y,rep2z
+      real*8 rdmpik(7)
       real*8, allocatable :: prscale(:)
 c
 c
@@ -696,7 +695,7 @@ c
                   if (i12(j,i) .eq. ip11(k,i)) then
                      pscale(i12(j,i)) = p2iscale
                      prscale(i12(j,i)) = pr2iscale
-                  endif
+                  end if
                end do
                dscale(i12(j,i)) = pscale(i12(j,i))
             end do
@@ -707,7 +706,7 @@ c
                   if (i13(j,i) .eq. ip11(k,i)) then
                      pscale(i13(j,i)) = p3iscale
                      prscale(i13(j,i)) = pr3iscale
-                  endif
+                  end if
                end do
                dscale(i13(j,i)) = pscale(i13(j,i))
             end do
@@ -718,7 +717,7 @@ c
                   if (i14(j,i) .eq. ip11(k,i)) then
                      pscale(i14(j,i)) = p4iscale
                      prscale(i14(j,i)) = pr4iscale
-                  endif
+                  end if
                end do
                dscale(i14(j,i)) = pscale(i14(j,i))
             end do
@@ -729,7 +728,7 @@ c
                   if (i15(j,i) .eq. ip11(k,i)) then
                      pscale(i15(j,i)) = p5iscale
                      prscale(i15(j,i)) = pr5iscale
-                  endif
+                  end if
                end do
                dscale(i15(j,i)) = pscale(i15(j,i))
             end do

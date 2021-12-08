@@ -84,6 +84,8 @@ c
       use potent
       use shunt
       use virial
+c     modules for exchind
+      use repel
       implicit none
       integer i,j,k,m
       integer ii,kk,jcell
@@ -168,6 +170,25 @@ c
       real*8, allocatable :: decfy(:)
       real*8, allocatable :: decfz(:)
       character*6 mode
+c     variables for exchind
+      real*8 rdepx,rdepy,rdepz
+      real*8 rfrcx,rfrcy,rfrcz
+      real*8 term1ik,term2ik,term3ik
+      real*8 term4ik,term5ik,term6ik
+      real*8 term7ik,term8ik
+      real*8 rsizi,rsizk,rsizik
+      real*8 rdmpi,rdmpk
+      real*8 rdmpik(9)
+      real*8 rvali,rvalk
+      real*8 rrr1,rrr3,rrr5,rrr7,rrr9,rrr11
+      real*8 rdsr3ik,rdsr5ik,rdsr7ik
+      real*8 rtuir,rtukr
+      real*8 rtix3,rtiy3,rtiz3
+      real*8 rtix5,rtiy5,rtiz5
+      real*8 rtkx3,rtky3,rtkz3
+      real*8 rtkx5,rtky5,rtkz5
+      real*8, allocatable :: prscale(:)
+      real*8, allocatable :: wrscale(:)
 c
 c
 c     zero out the polarization energy and derivatives
@@ -199,9 +220,11 @@ c
 c     perform dynamic allocation of some local arrays
 c
       allocate (pscale(n))
+      allocate (prscale(n))
       allocate (dscale(n))
       allocate (uscale(n))
       allocate (wscale(n))
+      allocate (wrscale(n))
       allocate (ufld(3,n))
       allocate (dufld(6,n))
       allocate (pot(n))
@@ -213,9 +236,11 @@ c     set exclusion coefficients and arrays to store fields
 c
       do i = 1, n
          pscale(i) = 1.0d0
+         prscale(i) = 1.0d0
          dscale(i) = 1.0d0
          uscale(i) = 1.0d0
          wscale(i) = 1.0d0
+         wrscale(i) = 1.0d0
          do j = 1, 3
             ufld(j,i) = 0.0d0
          end do
@@ -276,6 +301,11 @@ c
             corei = pcore(ii)
             vali = pval(ii)
             alphai = palpha(ii)
+            if (exchind) then
+               rsizi = sizpr(ii)
+               rdmpi = dmppr(ii)
+               rvali = elepr(ii)
+            end if
          end if
 c
 c     set exclusion coefficients for connected atoms
@@ -283,39 +313,55 @@ c
          if (dpequal) then
             do j = 1, n12(i)
                pscale(i12(j,i)) = p2scale
+               prscale(i12(j,i)) = pr2scale
                do k = 1, np11(i)
-                  if (i12(j,i) .eq. ip11(k,i))
-     &               pscale(i12(j,i)) = p2iscale
+                  if (i12(j,i) .eq. ip11(k,i)) then
+                     pscale(i12(j,i)) = p2iscale
+                     prscale(i12(j,i)) = pr2iscale
+                  end if
                end do
                dscale(i12(j,i)) = pscale(i12(j,i))
                wscale(i12(j,i)) = w2scale
+               wrscale(i12(j,i)) = wr2scale
             end do
             do j = 1, n13(i)
                pscale(i13(j,i)) = p3scale
+               prscale(i13(j,i)) = pr3scale
                do k = 1, np11(i)
-                  if (i13(j,i) .eq. ip11(k,i))
-     &               pscale(i13(j,i)) = p3iscale
+                  if (i13(j,i) .eq. ip11(k,i)) then
+                     pscale(i13(j,i)) = p3iscale
+                     prscale(i13(j,i)) = pr3iscale
+                  end if
                end do
                dscale(i13(j,i)) = pscale(i13(j,i))
                wscale(i13(j,i)) = w3scale
+               wrscale(i13(j,i)) = wr3scale
             end do
             do j = 1, n14(i)
                pscale(i14(j,i)) = p4scale
+               prscale(i14(j,i)) = pr4scale
                do k = 1, np11(i)
-                   if (i14(j,i) .eq. ip11(k,i))
-     &               pscale(i14(j,i)) = p4iscale
+                  if (i14(j,i) .eq. ip11(k,i)) then
+                     pscale(i14(j,i)) = p4iscale
+                     prscale(i14(j,i)) = pr4iscale
+                  end if
                end do
                dscale(i14(j,i)) = pscale(i14(j,i))
                wscale(i14(j,i)) = w4scale
+               wrscale(i14(j,i)) = wr4scale
             end do
             do j = 1, n15(i)
                pscale(i15(j,i)) = p5scale
+               prscale(i15(j,i)) = pr5scale
                do k = 1, np11(i)
-                  if (i15(j,i) .eq. ip11(k,i))
-     &               pscale(i15(j,i)) = p5iscale
+                  if (i15(j,i) .eq. ip11(k,i)) then
+                     pscale(i15(j,i)) = p5iscale
+                     prscale(i15(j,i)) = pr5iscale
+                  end if
                end do
                dscale(i15(j,i)) = pscale(i15(j,i))
                wscale(i15(j,i)) = w5scale
+               wrscale(i15(j,i)) = wr5scale
             end do
             do j = 1, np11(i)
                uscale(ip11(j,i)) = u1scale
@@ -533,6 +579,26 @@ c
                   dsr7k = 2.0d0 * rr7 * dmpk(7) * dscale(k)
                end if
 c
+c     get repulsion damping factors
+c
+               if (exchind) then
+                  rsizk = sizpr(kk)
+                  rdmpk = dmppr(kk)
+                  rvalk = elepr(kk)
+                  rsizik = rsizi*rsizk
+                  rrr1 = 1.0d0 / r
+                  rrr3 = rrr1 / r2
+                  rrr5 = 3.0d0 * rrr3 / r2
+                  rrr7 = 5.0d0 * rrr5 / r2
+                  rrr9 = 7.0d0 * rrr7 / r2
+                  rrr11 = 9.0d0 * rrr9 / r2
+                  call damprep (r,r2,rrr1,rrr3,rrr5,rrr7,rrr9,rrr11,
+     &                             9,rdmpi,rdmpk,rdmpik)
+                  rdsr3ik = rdmpik(3) * prscale(k) * rsizik / r
+                  rdsr5ik = rdmpik(5) * prscale(k) * rsizik / r
+                  rdsr7ik = rdmpik(7) * prscale(k) * rsizik / r
+               end if
+c
 c     store the potential at each site for use in charge flux
 c
                if (use_chgflx) then
@@ -574,6 +640,22 @@ c
                ufld(1,k) = ufld(1,k) + tkx3 + xr*tukr
                ufld(2,k) = ufld(2,k) + tky3 + yr*tukr
                ufld(3,k) = ufld(3,k) + tkz3 + zr*tukr
+               if (exchind) then
+                  rtix3 = rdsr3ik*ukx
+                  rtiy3 = rdsr3ik*uky
+                  rtiz3 = rdsr3ik*ukz
+                  rtkx3 = rdsr3ik*uix
+                  rtky3 = rdsr3ik*uiy
+                  rtkz3 = rdsr3ik*uiz
+                  rtuir = -rdsr5ik*ukr
+                  rtukr = -rdsr5ik*uir
+                  ufld(1,i) = ufld(1,i) + rtix3 + xr*rtuir
+                  ufld(2,i) = ufld(2,i) + rtiy3 + yr*rtuir
+                  ufld(3,i) = ufld(3,i) + rtiz3 + zr*rtuir
+                  ufld(1,k) = ufld(1,k) + rtkx3 + xr*rtukr
+                  ufld(2,k) = ufld(2,k) + rtky3 + yr*rtukr
+                  ufld(3,k) = ufld(3,k) + rtkz3 + zr*rtukr
+               end if
 c
 c     get induced dipole field gradient used for quadrupole torques
 c
@@ -614,6 +696,34 @@ c
                dufld(5,k) = dufld(5,k) - yr*tkz5 - zr*tky5
      &                         - 2.0d0*yr*zr*tukr
                dufld(6,k) = dufld(6,k) - zr*tkz5 - zr*zr*tukr
+               if (exchind) then
+                  rtix5 = 2.0d0 * (rdsr5ik*ukx)
+                  rtiy5 = 2.0d0 * (rdsr5ik*uky)
+                  rtiz5 = 2.0d0 * (rdsr5ik*ukz)
+                  rtkx5 = 2.0d0 * (rdsr5ik*uix)
+                  rtky5 = 2.0d0 * (rdsr5ik*uiy)
+                  rtkz5 = 2.0d0 * (rdsr5ik*uiz)
+                  rtuir = -rdsr7ik*ukr
+                  rtukr = -rdsr7ik*uir
+                  dufld(1,i) = dufld(1,i) + xr*rtix5 + xr*xr*rtuir
+                  dufld(2,i) = dufld(2,i) + xr*rtiy5 + yr*rtix5
+     &                         + 2.0d0*xr*yr*rtuir
+                  dufld(3,i) = dufld(3,i) + yr*rtiy5 + yr*yr*rtuir
+                  dufld(4,i) = dufld(4,i) + xr*rtiz5 + zr*rtix5
+     &                         + 2.0d0*xr*zr*rtuir
+                  dufld(5,i) = dufld(5,i) + yr*rtiz5 + zr*rtiy5
+     &                         + 2.0d0*yr*zr*rtuir
+                  dufld(6,i) = dufld(6,i) + zr*rtiz5 + zr*zr*rtuir
+                  dufld(1,k) = dufld(1,k) - xr*rtkx5 - xr*xr*rtukr
+                  dufld(2,k) = dufld(2,k) - xr*rtky5 - yr*rtkx5
+     &                         - 2.0d0*xr*yr*rtukr
+                  dufld(3,k) = dufld(3,k) - yr*rtky5 - yr*yr*rtukr
+                  dufld(4,k) = dufld(4,k) - xr*rtkz5 - zr*rtkx5
+     &                         - 2.0d0*xr*zr*rtukr
+                  dufld(5,k) = dufld(5,k) - yr*rtkz5 - zr*rtky5
+     &                         - 2.0d0*yr*zr*rtukr
+                  dufld(6,k) = dufld(6,k) - zr*rtkz5 - zr*zr*rtukr
+               end if
 c
 c     get the field gradient for direct polarization force
 c
@@ -879,6 +989,110 @@ c
                   frcz = 2.0d0*dscale(k)*depz
                end if
 c
+c     get the field gradient for exchange induction polarization force
+c
+               if (exchind) then
+                  term1ik = rdmpik(3) - rdmpik(5)*xr*xr
+                  term2ik = 2.0d0*rdmpik(5)*xr 
+                  term3ik = rdmpik(7)*xr*xr - rdmpik(5)
+                  term4ik = 2.0d0*rdmpik(5)
+                  term5ik = 5.0d0*rdmpik(7)*xr
+                  term6ik = rdmpik(9)*xr*xr
+                  tixx = rvali*term1ik
+     &                      + dix*term2ik - dir*term3ik
+     &                      - qixx*term4ik + qix*term5ik - qir*term6ik
+     &                      + (qiy*yr+qiz*zr)*rdmpik(7)
+                  tkxx = rvalk*term1ik
+     &                      - dkx*term2ik + dkr*term3ik
+     &                      - qkxx*term4ik + qkx*term5ik - qkr*term6ik
+     &                      + (qky*yr+qkz*zr)*rdmpik(7)
+                  term1ik = rdmpik(3) - rdmpik(5)*yr*yr
+                  term2ik = 2.0d0*rdmpik(5)*yr
+                  term3ik = rdmpik(7)*yr*yr - rdmpik(5)
+                  term4ik = 2.0d0*rdmpik(5)
+                  term5ik = 5.0d0*rdmpik(7)*yr
+                  term6ik = rdmpik(9)*yr*yr
+                  tiyy = rvali*term1ik
+     &                      + diy*term2ik - dir*term3ik
+     &                      - qiyy*term4ik + qiy*term5ik - qir*term6ik
+     &                      + (qix*xr+qiz*zr)*rdmpik(7)
+                  tkyy = rvalk*term1ik
+     &                      - dky*term2ik + dkr*term3ik
+     &                      - qkyy*term4ik + qky*term5ik - qkr*term6ik
+     &                      + (qkx*xr+qkz*zr)*rdmpik(7)
+                  term1ik = rdmpik(3) - rdmpik(5)*zr*zr
+                  term2ik = 2.0d0*rdmpik(5)*zr
+                  term3ik = rdmpik(7)*zr*zr - rdmpik(5)
+                  term4ik = 2.0d0*rdmpik(5)
+                  term5ik = 5.0d0*rdmpik(7)*zr
+                  term6ik = rdmpik(9)*zr*zr
+                  tizz = rvali*term1ik
+     &                      + diz*term2ik - dir*term3ik
+     &                      - qizz*term4ik + qiz*term5ik - qir*term6ik
+     &                      + (qix*xr+qiy*yr)*rdmpik(7)
+                  tkzz = rvalk*term1ik
+     &                      - dkz*term2ik + dkr*term3ik
+     &                      - qkzz*term4ik + qkz*term5ik - qkr*term6ik
+     &                      + (qkx*xr+qky*yr)*rdmpik(7)
+                  term2ik = rdmpik(5)*xr 
+                  term1ik = yr * term2ik
+                  term3ik = rdmpik(5)*yr
+                  term4ik = yr * (rdmpik(7)*xr)
+                  term5ik = 2.0d0*rdmpik(5)
+                  term6ik = 2.0d0*rdmpik(7)*xr
+                  term7ik = 2.0d0*rdmpik(7)*yr
+                  term8ik = yr*rdmpik(9)*xr
+                  tixy = -rvali*term1ik
+     &                      + diy*term2ik + dix*term3ik
+     &                      - dir*term4ik - qixy*term5ik + qiy*term6ik
+     &                      + qix*term7ik - qir*term8ik
+                  tkxy = -rvalk*term1ik
+     &                      - dky*term2ik - dkx*term3ik
+     &                      + dkr*term4ik - qkxy*term5ik + qky*term6ik
+     &                      + qkx*term7ik - qkr*term8ik
+                  term2ik = rdmpik(5)*xr
+                  term1ik = zr * term2ik
+                  term3ik = rdmpik(5)*zr
+                  term4ik = zr * (rdmpik(7)*xr)
+                  term5ik = 2.0d0*rdmpik(5)
+                  term6ik = 2.0d0*rdmpik(7)*xr
+                  term7ik = 2.0d0*rdmpik(7)*zr
+                  term8ik = zr*rdmpik(9)*xr
+                  tixz = -rvali*term1ik
+     &                      + diz*term2ik + dix*term3ik
+     &                      - dir*term4ik - qixz*term5ik + qiz*term6ik
+     &                      + qix*term7ik - qir*term8ik
+                  tkxz = -rvalk*term1ik
+     &                      - dkz*term2ik - dkx*term3ik
+     &                      + dkr*term4ik - qkxz*term5ik + qkz*term6ik
+     &                      + qkx*term7ik - qkr*term8ik
+                  term2ik = rdmpik(5)*yr
+                  term1ik = zr * term2ik
+                  term3ik = rdmpik(5)*zr
+                  term4ik = zr * (rdmpik(7)*yr)
+                  term5ik = 2.0d0*rdmpik(5)
+                  term6ik = 2.0d0*rdmpik(7)*yr
+                  term7ik = 2.0d0*rdmpik(7)*zr
+                  term8ik = zr*rdmpik(9)*yr
+                  tiyz = -rvali*term1ik
+     &                      + diz*term2ik + diy*term3ik
+     &                      - dir*term4ik - qiyz*term5ik + qiz*term6ik
+     &                      + qiy*term7ik - qir*term8ik
+                  tkyz = -rvalk*term1ik
+     &                      - dkz*term2ik - dky*term3ik
+     &                      + dkr*term4ik - qkyz*term5ik + qkz*term6ik
+     &                      + qky*term7ik - qkr*term8ik
+                  rdepx = tixx*ukx + tixy*uky + tixz*ukz
+     &                      - tkxx*uix - tkxy*uiy - tkxz*uiz
+                  rdepy = tixy*ukx + tiyy*uky + tiyz*ukz
+     &                      - tkxy*uix - tkyy*uiy - tkyz*uiz
+                  rdepz = tixz*ukx + tiyz*uky + tizz*ukz
+     &                      - tkxz*uix - tkyz*uiy - tkzz*uiz
+                  rfrcx = prscale(k)*rdepx*rsizik / r
+                  rfrcy = prscale(k)*rdepy*rsizik / r
+                  rfrcz = prscale(k)*rdepz*rsizik / r
+               end if
+c
 c     reset Thole values when alternate direct damping is used
 c
                if (use_dirdamp) then
@@ -993,6 +1207,47 @@ c
                   frcx = frcx + wscale(kk)*depx
                   frcy = frcy + wscale(kk)*depy
                   frcz = frcz + wscale(kk)*depz
+                  if (exchind) then
+                     term1 = 2.0d0 * rdmpik(5)
+                     term2 = term1*xr
+                     term3 = rdmpik(5) - rdmpik(7)*xr*xr 
+                     tixx = uix*term2 + uir*term3
+                     tkxx = ukx*term2 + ukr*term3
+                     term2 = term1*yr 
+                     term3 = rdmpik(5) - rdmpik(7)*yr*yr 
+                     tiyy = uiy*term2 + uir*term3
+                     tkyy = uky*term2 + ukr*term3
+                     term2 = term1*zr 
+                     term3 = rdmpik(5) - rdmpik(7)*zr*zr 
+                     tizz = uiz*term2 + uir*term3
+                     tkzz = ukz*term2 + ukr*term3
+                     term1 = rdmpik(5)*yr
+                     term2 = rdmpik(5)*xr 
+                     term3 = yr * (rdmpik(7)*xr)
+                     tixy = uix*term1 + uiy*term2 - uir*term3
+                     tkxy = ukx*term1 + uky*term2 - ukr*term3
+                     term1 = rdmpik(5) * zr
+                     term3 = zr * (rdmpik(7)*xr)
+                     tixz = uix*term1 + uiz*term2 - uir*term3
+                     tkxz = ukx*term1 + ukz*term2 - ukr*term3
+                     term2 = rdmpik(5)*yr 
+                     term3 = zr * (rdmpik(7)*yr)
+                     tiyz = uiy*term1 + uiz*term2 - uir*term3
+                     tkyz = uky*term1 + ukz*term2 - ukr*term3
+                     rdepx = tixx*ukxp + tixy*ukyp + tixz*ukzp
+     &                      + tkxx*uixp + tkxy*uiyp + tkxz*uizp
+                     rdepy = tixy*ukxp + tiyy*ukyp + tiyz*ukzp
+     &                      + tkxy*uixp + tkyy*uiyp + tkyz*uizp
+                     rdepz = tixz*ukxp + tiyz*ukyp + tizz*ukzp
+     &                      + tkxz*uixp + tkyz*uiyp + tkzz*uizp
+                     frcx = frcx+rfrcx+0.5d0*wrscale(kk)*rdepx
+     &                                 *rsizik/r
+                     frcy = frcy+rfrcy+0.5d0*wrscale(kk)*rdepy
+     &                                 *rsizik/r
+                     frcz = frcz+rfrcz+0.5d0*wrscale(kk)*rdepz
+     &                                 *rsizik/r
+                     
+                  end if
 c
 c     get the dtau/dr terms used for OPT polarization force
 c
