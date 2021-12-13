@@ -171,11 +171,12 @@ c     modules for exchind
       real*8, allocatable :: decfz(:)
       character*6 mode
 c     variables for exchind
-      real*8 rdepx,rdepy,rdepz
+      real*8 uik,diuk,dkui
+      real*8 uiqk,ukqi
+      real*8 uiqkx,uiqky,uiqkz
+      real*8 ukqix,ukqiy,ukqiz
+      real*8 eterm,de
       real*8 rfrcx,rfrcy,rfrcz
-      real*8 term1ik,term2ik,term3ik
-      real*8 term4ik,term5ik,term6ik
-      real*8 term7ik,term8ik
       real*8 rsizi,rsizk,rsizik
       real*8 rdmpi,rdmpk
       real*8 rdmpik(9)
@@ -470,6 +471,17 @@ c
                uirp = uixp*xr + uiyp*yr + uizp*zr
                ukr = ukx*xr + uky*yr + ukz*zr
                ukrp = ukxp*xr + ukyp*yr + ukzp*zr
+               uik = uix*ukx + uiy*uky + uiz*ukz
+               diuk = dix*ukx + diy*uky + diz*ukz
+               dkui = dkx*uix + dky*uiy + dkz*uiz
+               uiqk = uix*qkx + uiy*qky + uiz*qkz
+               ukqi = ukx*qix + uky*qiy + ukz*qiz
+               uiqkx = uix*qkxx + uiy*qkxy + diz*qkxz
+               uiqky = uix*qkxy + uiy*qkyy + uiz*qkyz
+               uiqkz = uix*qkxz + uiy*qkyz + uiz*qkzz
+               ukqix = ukx*qixx + uky*qixy + ukz*qixz
+               ukqiy = ukx*qixy + uky*qiyy + ukz*qiyz
+               ukqiz = ukx*qixz + uky*qiyz + ukz*qizz
 c
 c     get reciprocal distance terms for this interaction
 c
@@ -992,105 +1004,40 @@ c
 c     get the field gradient for exchange induction polarization force
 c
                if (exchind) then
-                  term1ik = rdmpik(3) - rdmpik(5)*xr*xr
-                  term2ik = 2.0d0*rdmpik(5)*xr 
-                  term3ik = rdmpik(7)*xr*xr - rdmpik(5)
-                  term4ik = 2.0d0*rdmpik(5)
-                  term5ik = 5.0d0*rdmpik(7)*xr
-                  term6ik = rdmpik(9)*xr*xr
-                  tixx = rvali*term1ik
-     &                      + dix*term2ik - dir*term3ik
-     &                      - qixx*term4ik + qix*term5ik - qir*term6ik
-     &                      + (qiy*yr+qiz*zr)*rdmpik(7)
-                  tkxx = rvalk*term1ik
-     &                      - dkx*term2ik + dkr*term3ik
-     &                      - qkxx*term4ik + qkx*term5ik - qkr*term6ik
-     &                      + (qky*yr+qkz*zr)*rdmpik(7)
-                  term1ik = rdmpik(3) - rdmpik(5)*yr*yr
-                  term2ik = 2.0d0*rdmpik(5)*yr
-                  term3ik = rdmpik(7)*yr*yr - rdmpik(5)
-                  term4ik = 2.0d0*rdmpik(5)
-                  term5ik = 5.0d0*rdmpik(7)*yr
-                  term6ik = rdmpik(9)*yr*yr
-                  tiyy = rvali*term1ik
-     &                      + diy*term2ik - dir*term3ik
-     &                      - qiyy*term4ik + qiy*term5ik - qir*term6ik
-     &                      + (qix*xr+qiz*zr)*rdmpik(7)
-                  tkyy = rvalk*term1ik
-     &                      - dky*term2ik + dkr*term3ik
-     &                      - qkyy*term4ik + qky*term5ik - qkr*term6ik
-     &                      + (qkx*xr+qkz*zr)*rdmpik(7)
-                  term1ik = rdmpik(3) - rdmpik(5)*zr*zr
-                  term2ik = 2.0d0*rdmpik(5)*zr
-                  term3ik = rdmpik(7)*zr*zr - rdmpik(5)
-                  term4ik = 2.0d0*rdmpik(5)
-                  term5ik = 5.0d0*rdmpik(7)*zr
-                  term6ik = rdmpik(9)*zr*zr
-                  tizz = rvali*term1ik
-     &                      + diz*term2ik - dir*term3ik
-     &                      - qizz*term4ik + qiz*term5ik - qir*term6ik
-     &                      + (qix*xr+qiy*yr)*rdmpik(7)
-                  tkzz = rvalk*term1ik
-     &                      - dkz*term2ik + dkr*term3ik
-     &                      - qkzz*term4ik + qkz*term5ik - qkr*term6ik
-     &                      + (qkx*xr+qky*yr)*rdmpik(7)
-                  term2ik = rdmpik(5)*xr 
-                  term1ik = yr * term2ik
-                  term3ik = rdmpik(5)*yr
-                  term4ik = yr * (rdmpik(7)*xr)
-                  term5ik = 2.0d0*rdmpik(5)
-                  term6ik = 2.0d0*rdmpik(7)*xr
-                  term7ik = 2.0d0*rdmpik(7)*yr
-                  term8ik = yr*rdmpik(9)*xr
-                  tixy = -rvali*term1ik
-     &                      + diy*term2ik + dix*term3ik
-     &                      - dir*term4ik - qixy*term5ik + qiy*term6ik
-     &                      + qix*term7ik - qir*term8ik
-                  tkxy = -rvalk*term1ik
-     &                      - dky*term2ik - dkx*term3ik
-     &                      + dkr*term4ik - qkxy*term5ik + qky*term6ik
-     &                      + qkx*term7ik - qkr*term8ik
-                  term2ik = rdmpik(5)*xr
-                  term1ik = zr * term2ik
-                  term3ik = rdmpik(5)*zr
-                  term4ik = zr * (rdmpik(7)*xr)
-                  term5ik = 2.0d0*rdmpik(5)
-                  term6ik = 2.0d0*rdmpik(7)*xr
-                  term7ik = 2.0d0*rdmpik(7)*zr
-                  term8ik = zr*rdmpik(9)*xr
-                  tixz = -rvali*term1ik
-     &                      + diz*term2ik + dix*term3ik
-     &                      - dir*term4ik - qixz*term5ik + qiz*term6ik
-     &                      + qix*term7ik - qir*term8ik
-                  tkxz = -rvalk*term1ik
-     &                      - dkz*term2ik - dkx*term3ik
-     &                      + dkr*term4ik - qkxz*term5ik + qkz*term6ik
-     &                      + qkx*term7ik - qkr*term8ik
-                  term2ik = rdmpik(5)*yr
-                  term1ik = zr * term2ik
-                  term3ik = rdmpik(5)*zr
-                  term4ik = zr * (rdmpik(7)*yr)
-                  term5ik = 2.0d0*rdmpik(5)
-                  term6ik = 2.0d0*rdmpik(7)*yr
-                  term7ik = 2.0d0*rdmpik(7)*zr
-                  term8ik = zr*rdmpik(9)*yr
-                  tiyz = -rvali*term1ik
-     &                      + diz*term2ik + diy*term3ik
-     &                      - dir*term4ik - qiyz*term5ik + qiz*term6ik
-     &                      + qiy*term7ik - qir*term8ik
-                  tkyz = -rvalk*term1ik
-     &                      - dkz*term2ik - dky*term3ik
-     &                      + dkr*term4ik - qkyz*term5ik + qkz*term6ik
-     &                      + qky*term7ik - qkr*term8ik
-                  rdepx = tixx*ukx + tixy*uky + tixz*ukz
-     &                      - tkxx*uix - tkxy*uiy - tkxz*uiz
-                  rdepy = tixy*ukx + tiyy*uky + tiyz*ukz
-     &                      - tkxy*uix - tkyy*uiy - tkyz*uiz
-                  rdepz = tixz*ukx + tiyz*uky + tizz*ukz
-     &                      - tkxz*uix - tkyz*uiy - tkzz*uiz
-                  rfrcx = prscale(k)*rdepx*rsizik / r
-                  rfrcy = prscale(k)*rdepy*rsizik / r
-                  rfrcz = prscale(k)*rdepz*rsizik / r
+                  term1 = rvalk*uir - rvali*ukr + (diuk + dkui)
+                  term2 = -uir*dkr - dir*ukr + 2*(ukqi - uiqk)
+                  term3 = uir*qkr - ukr*qir
+                  eterm = term1*rdmpik(3) + term2*rdmpik(5)
+     &                   + term3*rdmpik(7)
+                  de = term1*rdmpik(5) + term2*rdmpik(7)
+     &                   + term3*rdmpik(9)
+                  term1 = -rvalk*rdmpik(3) + dkr*rdmpik(5)
+     &                   - qkr*rdmpik(7)
+                  term2 = ukr*rdmpik(5)
+                  term3 = rvali*rdmpik(3) + dir*rdmpik(5)
+     &                   + qir*rdmpik(7)
+                  term4 = uir*rdmpik(5)
+                  term5 = 2*rdmpik(5)
+                  term6 = 2*(ukr*rdmpik(7))
+                  term7 = 2*(-uir*rdmpik(7))
+                  rfrcx = de*xr + term1*uix + term2*dix + term3*ukx
+     &                  + term4*dkx + term5*(uiqkx - ukqix)
+     &                  + term6*qix + term7*qkx
+                  rfrcy = de*yr + term1*uiy + term2*diy + term3*uky
+     &                  + term4*dky + term5*(uiqky - ukqiy)
+     &                  + term6*qiy + term7*qky
+                  rfrcz = de*zr + term1*uiz + term2*diy + term3*ukz
+     &                  + term4*dkz + term5*(uiqkz - ukqiz)
+     &                  + term6*qiz + term7*qkz
+                  rfrcx = rfrcx*rrr1 + eterm*rrr3*xr
+                  rfrcy = rfrcy*rrr1 + eterm*rrr3*yr
+                  rfrcz = rfrcz*rrr1 + eterm*rrr3*zr
+                  rfrcx = rsizik * prscale(k) * rfrcx
+                  rfrcy = rsizik * prscale(k) * rfrcy
+                  rfrcz = rsizik * prscale(k) * rfrcz
+                  frcx = frcx + rfrcx
+                  frcy = frcy + rfrcy
+                  frcz = frcz + rfrcz
                end if
 c
 c     reset Thole values when alternate direct damping is used
@@ -1208,45 +1155,24 @@ c
                   frcy = frcy + wscale(kk)*depy
                   frcz = frcz + wscale(kk)*depz
                   if (exchind) then
-                     term1 = 2.0d0 * rdmpik(5)
-                     term2 = term1*xr
-                     term3 = rdmpik(5) - rdmpik(7)*xr*xr 
-                     tixx = uix*term2 + uir*term3
-                     tkxx = ukx*term2 + ukr*term3
-                     term2 = term1*yr 
-                     term3 = rdmpik(5) - rdmpik(7)*yr*yr 
-                     tiyy = uiy*term2 + uir*term3
-                     tkyy = uky*term2 + ukr*term3
-                     term2 = term1*zr 
-                     term3 = rdmpik(5) - rdmpik(7)*zr*zr 
-                     tizz = uiz*term2 + uir*term3
-                     tkzz = ukz*term2 + ukr*term3
-                     term1 = rdmpik(5)*yr
-                     term2 = rdmpik(5)*xr 
-                     term3 = yr * (rdmpik(7)*xr)
-                     tixy = uix*term1 + uiy*term2 - uir*term3
-                     tkxy = ukx*term1 + uky*term2 - ukr*term3
-                     term1 = rdmpik(5) * zr
-                     term3 = zr * (rdmpik(7)*xr)
-                     tixz = uix*term1 + uiz*term2 - uir*term3
-                     tkxz = ukx*term1 + ukz*term2 - ukr*term3
-                     term2 = rdmpik(5)*yr 
-                     term3 = zr * (rdmpik(7)*yr)
-                     tiyz = uiy*term1 + uiz*term2 - uir*term3
-                     tkyz = uky*term1 + ukz*term2 - ukr*term3
-                     rdepx = tixx*ukxp + tixy*ukyp + tixz*ukzp
-     &                      + tkxx*uixp + tkxy*uiyp + tkxz*uizp
-                     rdepy = tixy*ukxp + tiyy*ukyp + tiyz*ukzp
-     &                      + tkxy*uixp + tkyy*uiyp + tkyz*uizp
-                     rdepz = tixz*ukxp + tiyz*ukyp + tizz*ukzp
-     &                      + tkxz*uixp + tkyz*uiyp + tkzz*uizp
-                     frcx = frcx+rfrcx+0.5d0*wrscale(kk)*rdepx
-     &                                 *rsizik/r
-                     frcy = frcy+rfrcy+0.5d0*wrscale(kk)*rdepy
-     &                                 *rsizik/r
-                     frcz = frcz+rfrcz+0.5d0*wrscale(kk)*rdepz
-     &                                 *rsizik/r
-                     
+                     term1 = uik
+                     term2 = -uir*ukr
+                     eterm = term1*rdmpik(3) + term2*rdmpik(5)
+                     de = term1*rdmpik(5) + term2*rdmpik(7)
+                     term1 = ukr*rdmpik(5)
+                     term2 = uir*rdmpik(5)
+                     rfrcx = de*xr + term1*uix + term2*ukx
+                     rfrcy = de*yr + term1*uiy + term2*uky
+                     rfrcz = de*zr + term1*uiz + term2*ukz
+                     rfrcx = rfrcx*rrr1 + eterm*rrr3*xr
+                     rfrcy = rfrcy*rrr1 + eterm*rrr3*yr
+                     rfrcz = rfrcz*rrr1 + eterm*rrr3*zr
+                     rfrcx = rsizik * wrscale(kk) * rfrcx
+                     rfrcy = rsizik * wrscale(kk) * rfrcy
+                     rfrcz = rsizik * wrscale(kk) * rfrcz
+                     frcx = frcx + rfrcx
+                     frcy = frcy + rfrcy
+                     frcz = frcz + rfrcz
                   end if
 c
 c     get the dtau/dr terms used for OPT polarization force
