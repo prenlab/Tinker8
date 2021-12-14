@@ -708,7 +708,7 @@ c
                if (exchind) then
                   term1 = rdmpik(5)*rrr1 + rdmpik(3)*rrr3
                   term2 = rdmpik(7)*rrr1 + 2.0d0*rdmpik(5)*rrr3
-     &                         + 3.0d0*rdmpik(3)*rrr5
+     &                         + rdmpik(3)*rrr5
                   drufld11i = -(xr*xr*term2*ukr - 2.0d0*xr*term1*ukx)
                   drufld22i = -(yr*yr*term2*ukr - 2.0d0*yr*term1*uky)
                   drufld33i = -(zr*zr*term2*ukr - 2.0d0*zr*term1*ukz)
