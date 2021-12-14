@@ -182,12 +182,12 @@ c     variables for exchind
       real*8 rdmpik(9)
       real*8 rvali,rvalk
       real*8 rrr1,rrr3,rrr5,rrr7,rrr9,rrr11
-      real*8 rdsr3ik,rdsr5ik,rdsr7ik
-      real*8 rtuir,rtukr
-      real*8 rtix3,rtiy3,rtiz3
-      real*8 rtix5,rtiy5,rtiz5
-      real*8 rtkx3,rtky3,rtkz3
-      real*8 rtkx5,rtky5,rtkz5
+      real*8 rufld1i,rufld2i,rufld3i
+      real*8 rufld1k,rufld2k,rufld3k
+      real*8 drufld11i,drufld22i,drufld33i
+      real*8 drufld11k,drufld22k,drufld33k
+      real*8 drufld12i,drufld13i,drufld23i
+      real*8 drufld12k,drufld13k,drufld23k
       real*8, allocatable :: prscale(:)
       real*8, allocatable :: wrscale(:)
 c
@@ -606,9 +606,6 @@ c
                   rrr11 = 9.0d0 * rrr9 / r2
                   call damprep (r,r2,rrr1,rrr3,rrr5,rrr7,rrr9,rrr11,
      &                             9,rdmpi,rdmpk,rdmpik)
-                  rdsr3ik = rdmpik(3) * prscale(k) * rsizik / r
-                  rdsr5ik = rdmpik(5) * prscale(k) * rsizik / r
-                  rdsr7ik = rdmpik(7) * prscale(k) * rsizik / r
                end if
 c
 c     store the potential at each site for use in charge flux
@@ -653,20 +650,20 @@ c
                ufld(2,k) = ufld(2,k) + tky3 + yr*tukr
                ufld(3,k) = ufld(3,k) + tkz3 + zr*tukr
                if (exchind) then
-                  rtix3 = rdsr3ik*ukx
-                  rtiy3 = rdsr3ik*uky
-                  rtiz3 = rdsr3ik*ukz
-                  rtkx3 = rdsr3ik*uix
-                  rtky3 = rdsr3ik*uiy
-                  rtkz3 = rdsr3ik*uiz
-                  rtuir = -rdsr5ik*ukr
-                  rtukr = -rdsr5ik*uir
-                  ufld(1,i) = ufld(1,i) + rtix3 + xr*rtuir
-                  ufld(2,i) = ufld(2,i) + rtiy3 + yr*rtuir
-                  ufld(3,i) = ufld(3,i) + rtiz3 + zr*rtuir
-                  ufld(1,k) = ufld(1,k) + rtkx3 + xr*rtukr
-                  ufld(2,k) = ufld(2,k) + rtky3 + yr*rtukr
-                  ufld(3,k) = ufld(3,k) + rtkz3 + zr*rtukr
+                  term1 = rdmpik(3) * rrr1
+                  term2 = rdmpik(5)*rrr1 + rdmpik(3)*rrr3
+                  rufld1i = -xr * term2 * ukr + term1 * ukx
+                  rufld2i = -yr * term2 * ukr + term1 * uky
+                  rufld3i = -zr * term2 * ukr + term1 * ukz
+                  rufld1k = -xr * term2 * uir + term1 * uix
+                  rufld2k = -yr * term2 * uir + term1 * uiy
+                  rufld3k = -zr * term2 * uir + term1 * uiz
+                  ufld(1,i) = ufld(1,i) + rufld1i*prscale(k)*rsizik
+                  ufld(2,i) = ufld(2,i) + rufld2i*prscale(k)*rsizik
+                  ufld(3,i) = ufld(3,i) + rufld3i*prscale(k)*rsizik
+                  ufld(1,k) = ufld(1,k) + rufld1k*prscale(k)*rsizik
+                  ufld(2,k) = ufld(2,k) + rufld2k*prscale(k)*rsizik
+                  ufld(3,k) = ufld(3,k) + rufld3k*prscale(k)*rsizik
                end if
 c
 c     get induced dipole field gradient used for quadrupole torques
@@ -709,32 +706,39 @@ c
      &                         - 2.0d0*yr*zr*tukr
                dufld(6,k) = dufld(6,k) - zr*tkz5 - zr*zr*tukr
                if (exchind) then
-                  rtix5 = 2.0d0 * (rdsr5ik*ukx)
-                  rtiy5 = 2.0d0 * (rdsr5ik*uky)
-                  rtiz5 = 2.0d0 * (rdsr5ik*ukz)
-                  rtkx5 = 2.0d0 * (rdsr5ik*uix)
-                  rtky5 = 2.0d0 * (rdsr5ik*uiy)
-                  rtkz5 = 2.0d0 * (rdsr5ik*uiz)
-                  rtuir = -rdsr7ik*ukr
-                  rtukr = -rdsr7ik*uir
-                  dufld(1,i) = dufld(1,i) + xr*rtix5 + xr*xr*rtuir
-                  dufld(2,i) = dufld(2,i) + xr*rtiy5 + yr*rtix5
-     &                         + 2.0d0*xr*yr*rtuir
-                  dufld(3,i) = dufld(3,i) + yr*rtiy5 + yr*yr*rtuir
-                  dufld(4,i) = dufld(4,i) + xr*rtiz5 + zr*rtix5
-     &                         + 2.0d0*xr*zr*rtuir
-                  dufld(5,i) = dufld(5,i) + yr*rtiz5 + zr*rtiy5
-     &                         + 2.0d0*yr*zr*rtuir
-                  dufld(6,i) = dufld(6,i) + zr*rtiz5 + zr*zr*rtuir
-                  dufld(1,k) = dufld(1,k) - xr*rtkx5 - xr*xr*rtukr
-                  dufld(2,k) = dufld(2,k) - xr*rtky5 - yr*rtkx5
-     &                         - 2.0d0*xr*yr*rtukr
-                  dufld(3,k) = dufld(3,k) - yr*rtky5 - yr*yr*rtukr
-                  dufld(4,k) = dufld(4,k) - xr*rtkz5 - zr*rtkx5
-     &                         - 2.0d0*xr*zr*rtukr
-                  dufld(5,k) = dufld(5,k) - yr*rtkz5 - zr*rtky5
-     &                         - 2.0d0*yr*zr*rtukr
-                  dufld(6,k) = dufld(6,k) - zr*rtkz5 - zr*zr*rtukr
+                  term1 = rdmpik(5)*rrr1 + rdmpik(3)*rrr3
+                  term2 = rdmpik(7)*rrr1 + 2.0d0*rdmpik(5)*rrr3
+     &                         + 3.0d0*rdmpik(3)*rrr5
+                  drufld11i = -(xr*xr*term2*ukr - 2.0d0*xr*term1*ukx)
+                  drufld22i = -(yr*yr*term2*ukr - 2.0d0*yr*term1*uky)
+                  drufld33i = -(zr*zr*term2*ukr - 2.0d0*zr*term1*ukz)
+                  drufld11k = xr*xr*term2*uir - 2.0d0*xr*term1*uix
+                  drufld22k = yr*yr*term2*uir - 2.0d0*yr*term1*uiy
+                  drufld33k = zr*zr*term2*uir - 2.0d0*zr*term1*uiz
+                  drufld12i = -2.0d0*(xr*yr*term2*ukr 
+     &                         - (ukx*yr + uky*xr)*term1)
+                  drufld13i = -2.0d0*(xr*zr*term2*ukr 
+     &                         - (ukx*zr + ukz*xr)*term1)
+                  drufld23i = -2.0d0*(yr*zr*term2*ukr 
+     &                         - (uky*zr + ukz*yr)*term1)
+                  drufld12k = 2.0d0*(xr*yr*term2*uir 
+     &                         - (uix*yr + uiy*xr)*term1)
+                  drufld13k = 2.0d0*(xr*zr*term2*uir 
+     &                         - (uix*zr + uiz*xr)*term1)
+                  drufld23k = 2.0d0*(yr*zr*term2*uir 
+     &                         - (uiy*zr + uiz*yr)*term1)
+                  dufld(1,i) = dufld(1,i) + drufld11i*prscale(k)*rsizik
+                  dufld(2,i) = dufld(2,i) + drufld12i*prscale(k)*rsizik
+                  dufld(3,i) = dufld(3,i) + drufld22i*prscale(k)*rsizik
+                  dufld(4,i) = dufld(4,i) + drufld13i*prscale(k)*rsizik
+                  dufld(5,i) = dufld(5,i) + drufld23i*prscale(k)*rsizik
+                  dufld(6,i) = dufld(6,i) + drufld33i*prscale(k)*rsizik
+                  dufld(1,k) = dufld(1,k) + drufld11k*prscale(k)*rsizik
+                  dufld(2,k) = dufld(2,k) + drufld12k*prscale(k)*rsizik
+                  dufld(3,k) = dufld(3,k) + drufld22k*prscale(k)*rsizik
+                  dufld(4,k) = dufld(4,k) + drufld13k*prscale(k)*rsizik
+                  dufld(5,k) = dufld(5,k) + drufld23k*prscale(k)*rsizik
+                  dufld(6,k) = dufld(6,k) + drufld33k*prscale(k)*rsizik
                end if
 c
 c     get the field gradient for direct polarization force
