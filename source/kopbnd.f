@@ -21,7 +21,7 @@ c
       module kopbnd
       implicit none
       integer maxnopb
-      parameter (maxnopb=500)
+      parameter (maxnopb=5000)
       real*8 opbn(maxnopb)
       character*16 kopb(maxnopb)
       save

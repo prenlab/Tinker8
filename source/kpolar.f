@@ -557,7 +557,7 @@ c     set termination flag and temporary group storage
 c
       abort = .false.
       maxkeep = 100
-      maxlist = 10000
+      maxlist = 20000
 c
 c     find the directly connected group members for each atom
 c
