@@ -70,6 +70,10 @@ c
       if (use_bounds .and. .not.use_rigid)  call bounds
       if (use_clist .or. use_mlist)  call nblist
 c
+c     alter partial charges and multipoles for charge flux
+c
+      if (use_chgflx)  call alterchg
+c
 c     perform dynamic allocation of some local arrays
 c
       allocate (xcm(n))
