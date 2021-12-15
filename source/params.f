@@ -21,7 +21,7 @@ c
       module params
       implicit none
       integer maxprm
-      parameter (maxprm=50000)
+      parameter (maxprm=100000)
       integer nprm
       character*240 prmline(maxprm)
       save
