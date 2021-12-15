@@ -1030,7 +1030,7 @@ c
                   rfrcy = de*yr + term1*uiy + term2*diy + term3*uky
      &                  + term4*dky + term5*(uiqky - ukqiy)
      &                  + term6*qiy + term7*qky
-                  rfrcz = de*zr + term1*uiz + term2*diy + term3*ukz
+                  rfrcz = de*zr + term1*uiz + term2*diz + term3*ukz
      &                  + term4*dkz + term5*(uiqkz - ukqiz)
      &                  + term6*qiz + term7*qkz
                   rfrcx = rfrcx*rrr1 + eterm*rrr3*xr
