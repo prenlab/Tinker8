@@ -37,7 +37,7 @@ c
       integer maxres,maxfix
       integer maxbio
       parameter (maxatm=1000000)
-      parameter (maxtyp=5000)
+      parameter (maxtyp=8000)
       parameter (maxclass=1000)
       parameter (maxval=8)
       parameter (maxref=30)
