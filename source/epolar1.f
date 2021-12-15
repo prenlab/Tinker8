@@ -476,7 +476,7 @@ c
                dkui = dkx*uix + dky*uiy + dkz*uiz
                uiqk = uix*qkx + uiy*qky + uiz*qkz
                ukqi = ukx*qix + uky*qiy + ukz*qiz
-               uiqkx = uix*qkxx + uiy*qkxy + diz*qkxz
+               uiqkx = uix*qkxx + uiy*qkxy + uiz*qkxz
                uiqky = uix*qkxy + uiy*qkyy + uiz*qkyz
                uiqkz = uix*qkxz + uiy*qkyz + uiz*qkzz
                ukqix = ukx*qixx + uky*qixy + ukz*qixz
