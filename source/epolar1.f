@@ -651,7 +651,7 @@ c
                ufld(3,k) = ufld(3,k) + tkz3 + zr*tukr
                if (exchind) then
                   term1 = rdmpik(3) * rrr1
-                  term2 = rdmpik(5)*rrr1 + rdmpik(3)*rrr3
+                  term2 = rdmpik(5)*rrr1
                   rufld1i = -xr * term2 * ukr + term1 * ukx
                   rufld2i = -yr * term2 * ukr + term1 * uky
                   rufld3i = -zr * term2 * ukr + term1 * ukz
@@ -706,39 +706,38 @@ c
      &                         - 2.0d0*yr*zr*tukr
                dufld(6,k) = dufld(6,k) - zr*tkz5 - zr*zr*tukr
                if (exchind) then
-                  term1 = rdmpik(5)*rrr1 + rdmpik(3)*rrr3
-                  term2 = rdmpik(7)*rrr1 + 2.0d0*rdmpik(5)*rrr3
-     &                         + rdmpik(3)*rrr5
+                  term1 = rdmpik(5)*rrr1
+                  term2 = rdmpik(7)*rrr1
                   drufld11i = -(xr*xr*term2*ukr - 2.0d0*xr*term1*ukx)
                   drufld22i = -(yr*yr*term2*ukr - 2.0d0*yr*term1*uky)
                   drufld33i = -(zr*zr*term2*ukr - 2.0d0*zr*term1*ukz)
-                  drufld11k = xr*xr*term2*uir - 2.0d0*xr*term1*uix
-                  drufld22k = yr*yr*term2*uir - 2.0d0*yr*term1*uiy
-                  drufld33k = zr*zr*term2*uir - 2.0d0*zr*term1*uiz
-                  drufld12i = -2.0d0*(xr*yr*term2*ukr 
-     &                         - (ukx*yr + uky*xr)*term1)
+                  drufld11k = -(xr*xr*term2*uir - 2.0d0*xr*term1*uix)
+                  drufld22k = -(yr*yr*term2*uir - 2.0d0*yr*term1*uiy)
+                  drufld33k = -(zr*zr*term2*uir - 2.0d0*zr*term1*uiz)
+                  drufld12i = -2.0d0*(xr*yr*term2*ukr
+     &                         - (ukx*yr+uky*xr)*term1)
                   drufld13i = -2.0d0*(xr*zr*term2*ukr 
-     &                         - (ukx*zr + ukz*xr)*term1)
+     &                         - (ukx*zr+ukz*xr)*term1)
                   drufld23i = -2.0d0*(yr*zr*term2*ukr 
-     &                         - (uky*zr + ukz*yr)*term1)
-                  drufld12k = 2.0d0*(xr*yr*term2*uir 
-     &                         - (uix*yr + uiy*xr)*term1)
-                  drufld13k = 2.0d0*(xr*zr*term2*uir 
-     &                         - (uix*zr + uiz*xr)*term1)
-                  drufld23k = 2.0d0*(yr*zr*term2*uir 
-     &                         - (uiy*zr + uiz*yr)*term1)
+     &                         - (uky*zr+ukz*yr)*term1)
+                  drufld12k = -2.0d0*(xr*yr*term2*uir 
+     &                         - (uix*yr+uiy*xr)*term1)
+                  drufld13k = -2.0d0*(xr*zr*term2*uir 
+     &                         - (uix*zr+uiz*xr)*term1)
+                  drufld23k = -2.0d0*(yr*zr*term2*uir 
+     &                         - (uiy*zr+uiz*yr)*term1)
                   dufld(1,i) = dufld(1,i) + drufld11i*prscale(k)*rsizik
                   dufld(2,i) = dufld(2,i) + drufld12i*prscale(k)*rsizik
                   dufld(3,i) = dufld(3,i) + drufld22i*prscale(k)*rsizik
                   dufld(4,i) = dufld(4,i) + drufld13i*prscale(k)*rsizik
                   dufld(5,i) = dufld(5,i) + drufld23i*prscale(k)*rsizik
                   dufld(6,i) = dufld(6,i) + drufld33i*prscale(k)*rsizik
-                  dufld(1,k) = dufld(1,k) + drufld11k*prscale(k)*rsizik
-                  dufld(2,k) = dufld(2,k) + drufld12k*prscale(k)*rsizik
-                  dufld(3,k) = dufld(3,k) + drufld22k*prscale(k)*rsizik
-                  dufld(4,k) = dufld(4,k) + drufld13k*prscale(k)*rsizik
-                  dufld(5,k) = dufld(5,k) + drufld23k*prscale(k)*rsizik
-                  dufld(6,k) = dufld(6,k) + drufld33k*prscale(k)*rsizik
+                  dufld(1,k) = dufld(1,k) - drufld11k*prscale(k)*rsizik
+                  dufld(2,k) = dufld(2,k) - drufld12k*prscale(k)*rsizik
+                  dufld(3,k) = dufld(3,k) - drufld22k*prscale(k)*rsizik
+                  dufld(4,k) = dufld(4,k) - drufld13k*prscale(k)*rsizik
+                  dufld(5,k) = dufld(5,k) - drufld23k*prscale(k)*rsizik
+                  dufld(6,k) = dufld(6,k) - drufld33k*prscale(k)*rsizik
                end if
 c
 c     get the field gradient for direct polarization force
