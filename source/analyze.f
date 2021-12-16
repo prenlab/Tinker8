@@ -749,10 +749,10 @@ c     get the total charge, dipole and quadrupole moments
 c
       call moments
       write (iout,10)  netchg
-   10 format (/,' Total Electric Charge :',12x,f13.5,' Electrons')
+   10 format (/,' Total Electric Charge :',12x,f15.8,' Electrons')
       write (iout,20)  netdpl,xdpl,ydpl,zdpl
-   20 format (/,' Dipole Moment Magnitude :',10x,f13.3,' Debye',
-     &        //,' Dipole X,Y,Z-Components :',10x,3f13.3)
+   20 format (/,' Dipole Moment Magnitude :',10x,f15.8,' Debye',
+     &        //,' Dipole X,Y,Z-Components :',10x,3f15.8)
       write (iout,30)  xxqpl,xyqpl,xzqpl,yxqpl,yyqpl,
      &                 yzqpl,zxqpl,zyqpl,zzqpl
    30 format (/,' Quadrupole Moment Tensor :',9x,3f13.3,
