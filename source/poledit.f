@@ -1671,12 +1671,13 @@ c     ##                                                          ##
 c     ##############################################################
 c
 c
-c     "setpolar" assigns atomic polarizabilities, Thole damping or
-c     charge penetration parameters, and allows user modification
+c     "setpolar" assigns atomic polarizabilities, Thole damping, 
+c     direct damping or charge penetration parameters, and allows 
+c     user modification
 c
 c     note this routine contains directly coded scale factors, and
-c     Thole and charge penetration values for atom types that should
-c     be updated if the default force field values are modified
+c     Thole, dirdamp and charge penetration values for atom types i
+c     that should be updated if the default force field values are modified
 c
 c
       subroutine setpolar
@@ -1693,7 +1694,7 @@ c
       implicit none
       integer i,j,k,m,jj
       integer atn,next
-      real*8 pol,thl
+      real*8 pol,thl,ddp
       real*8 pel,pal
       real*8 sixth
       logical exist,query
@@ -1719,21 +1720,27 @@ c
       if (exist) then
          read (string,*,err=10,end=10)  answer
          call upcase (answer)
-         if (answer.eq.'A' .or. answer.eq.'H')  query = .false.
+         if (answer.eq.'A' .or. answer .eq. 'P' .or. answer.eq.'H') 
+     &      query = .false.
       end if
    10 continue
       if (query) then
          answer = 'A'
          write (iout,20)
-   20    format (/,' Choose Either the AMOEBA or HIPPO Polarization',
-     &              ' Model [A] :  ',$)
+   20    format (/,' Choose Either the AMOEBA, AMOEBA+ or HIPPO', 
+     &             ' Polarization Model [A] : ', $)
          read (input,30)  record
    30    format (a240)
          next = 1
          call gettext (record,answer,next)
          call upcase (answer)
       end if
-      if (answer .eq. 'H') then
+      if (answer .eq. 'P') then
+         forcefield = 'APLUS'
+         use_dirdamp = .true.
+         use_thole = .false.
+         dpequal = .true.
+      else if (answer .eq. 'H') then
          forcefield = 'HIPPO'
          use_thole = .false.
          use_chgpen = .true.
@@ -1814,6 +1821,35 @@ c
          w3scale = 1.0d0
          w4scale = 1.0d0
          w5scale = 1.0d0
+      end if
+c
+c     set multipole and polarization scale factors for AMOEBAPLUS 
+c
+      if (forcefield .eq. 'APLUS') then
+         m2scale = 0.0d0
+         m3scale = 0.0d0
+         m4scale = 0.5d0
+         m5scale = 1.0d0
+         p2scale = 0.0d0
+         p3scale = 0.0d0
+         p4scale = 0.5d0
+         p5scale = 0.5d0
+         p2iscale = 0.0d0
+         p3iscale = 0.0d0
+         p4iscale = 0.0d0
+         p5iscale = 0.0d0
+         d1scale = 0.0d0
+         d2scale = 1.0d0
+         d3scale = 1.0d0
+         d4scale = 1.0d0
+         u1scale = 1.0d0
+         u2scale = 1.0d0
+         u3scale = 1.0d0
+         u4scale = 1.0d0
+         do i = 1, n
+            thole(i) = 0.39d0
+            dirdamp(i) = 0.70d0 
+         end do
       end if
 c
 c     assign default atomic polarizabilities for AMOEBA model
@@ -2076,6 +2112,10 @@ c
       if (use_thole) then
          write (iout,70)
    70    format (/,5x,'Atom',5x,'Name',7x,'Polarize',10x,'Thole',/)
+      else if (use_dirdamp) then
+         write (iout,75)
+   75    format (/,5x,'Atom',5x,'Name',7x,'Polarize',11x,'Thole',
+     &             8x,'DirDamp',/)
       else if (use_chgpen) then
          write (iout,80)
    80    format (/,5x,'Atom',5x,'Name',7x,'Polarize',11x,'Core',
@@ -2090,6 +2130,15 @@ c
             else
                write (iout,100)  k,name(k),polarity(i),thole(i)
   100          format (i8,6x,a3,4x,f12.4,3x,f12.4)
+            end if
+         else if (use_dirdamp) then
+            if (i .eq. 0) then
+               write (iout,105)  k,name(k)
+  105          format (i8,6x,a3,12x,'--',13x,'--', 13x, '--')
+            else
+               write (iout,108) k,name(k),polarity(i),
+     &                thole(i),dirdamp(i)
+  108          format (i8,6x,a3,4x,f12.4,3x,f12.4,3x,f12.4)
             end if
          else if (use_chgpen) then
             if (i .eq. 0) then
@@ -2132,6 +2181,23 @@ c
                if (pol .eq. 0.0d0)  pol = polarity(i)
                if (thl .eq. 0.0d0)  thl = thole(i)
             end if
+         else if (use_dirdamp) then
+            pol = 0.0d0
+            thl = 0.39d0
+            ddp = 0.70d0
+            write (iout,162)
+  162       format (/,' Enter Atom Number, Polarizability, Thole &' 
+     &                 ' DirDamp Values :  ',$)
+            read (input,165)  record
+  165       format (a240)
+            read (record,*,err=168,end=168)  k,pol,thl,ddp
+  168       continue
+            if (k .ne. 0) then
+               i = pollist(k)
+               if (pol .eq. 0.0d0)  pol = polarity(i)
+               if (thl .eq. 0.0d0)  thl = thole(i)
+               if (ddp .eq. 0.0d0)  ddp = dirdamp(i)
+            end if
          else if (use_chgpen) then
             pol = 0.0d0
             pel = 0.0d0
@@ -2161,6 +2227,10 @@ c
             if (use_thole) then
                thole(i) = thl
                pdamp(i) = polarity(i)**sixth
+            else if (use_dirdamp) then
+               thole(i) = thl
+               dirdamp(i) = ddp
+               pdamp(i) = polarity(i)**sixth
             else if (use_chgpen) then
                pcore(i) = pel
                palpha(i) = pal
@@ -2177,6 +2247,10 @@ c
          if (use_thole) then
             write (iout,210)
   210       format (/,5x,'Atom',5x,'Name',7x,'Polarize',10x,'Thole',/)
+         else if (use_dirdamp) then
+            write (iout,215)
+  215       format (/,5x,'Atom',5x,'Name',7x,'Polarize',10x,'Thole', 
+     &                10x, 'DirDamp',/)
          else if (use_chgpen) then
             write (iout,220)
   220       format (/,5x,'Atom',5x,'Name',7x,'Polarize',4x,'Core Chg',
@@ -2191,6 +2265,15 @@ c
                else
                   write (iout,240)  k,name(k),polarity(i),thole(i)
   240             format (i8,6x,a3,4x,f12.4,3x,f12.4)
+               end if
+            else if (use_dirdamp) then
+               if (i .eq. 0) then
+                  write (iout,245)  k,name(k)
+  245             format (i8,6x,a3,12x,'--',13x,'--',13x, '--')
+               else
+                  write (iout,248)  k,name(k),polarity(i),
+     &                   thole(i), dirdamp(i)
+  248             format (i8,6x,a3,4x,f12.4,3x,f12.4,f12.4)
                end if
             else if (use_chgpen) then
                if (i .eq. 0) then
@@ -2798,6 +2881,10 @@ c
       write (iout,90)  truth(1:trimtext(truth))
    90 format (/,' Use Thole Damping:',11x,a)
       truth = 'False'
+      if (use_dirdamp)  truth = 'True'
+      write (iout,95)  truth(1:trimtext(truth))
+   95 format (/,' Use Direct Damping:',11x,a)
+      truth = 'False'
       if (use_chgpen)  truth = 'True'
       write (iout,100)  truth(1:trimtext(truth))
   100 format (' Charge Penetration:',10x,a)
@@ -2996,7 +3083,7 @@ c
       real*8 damp,expdamp
       real*8 scale3,scale5
       real*8 scale7
-      real*8 pdi,pti,pgamma
+      real*8 pdi,pti,ddi,pgamma
       real*8 fid(3),fkd(3)
       real*8 dmpi(7),dmpk(7)
       real*8, allocatable :: dscale(:)
@@ -3039,6 +3126,10 @@ c
          if (use_thole) then
             pdi = pdamp(ii)
             pti = thole(ii)
+         else if (use_dirdamp) then
+            pdi = pdamp(ii)
+            pti = thole(ii)
+            ddi = dirdamp(ii)
          else if (use_chgpen) then
             corei = pcore(ii)
             vali = pval(ii)
@@ -3140,6 +3231,40 @@ c
                      scale5 = 1.0d0 - expdamp*(1.0d0+damp)
                      scale7 = 1.0d0 - expdamp*(1.0d0+damp
      &                                   +0.6d0*damp**2)
+                  end if
+               end if
+               rr3 = scale3 / (r*r2)
+               rr5 = 3.0d0 * scale5 / (r*r2*r2)
+               rr7 = 15.0d0 * scale7 / (r*r2*r2*r2)
+               fid(1) = -xr*(rr3*ck-rr5*dkr+rr7*qkr)
+     &                     - rr3*dkx + 2.0d0*rr5*qkx
+               fid(2) = -yr*(rr3*ck-rr5*dkr+rr7*qkr)
+     &                     - rr3*dky + 2.0d0*rr5*qky
+               fid(3) = -zr*(rr3*ck-rr5*dkr+rr7*qkr)
+     &                     - rr3*dkz + 2.0d0*rr5*qkz
+               fkd(1) = xr*(rr3*ci+rr5*dir+rr7*qir)
+     &                     - rr3*dix - 2.0d0*rr5*qix
+               fkd(2) = yr*(rr3*ci+rr5*dir+rr7*qir)
+     &                     - rr3*diy - 2.0d0*rr5*qiy
+               fkd(3) = zr*(rr3*ci+rr5*dir+rr7*qir)
+     &                     - rr3*diz - 2.0d0*rr5*qiz
+c
+c     find the field components for Direct polarization damping
+c
+            else if (use_dirdamp) then
+               damp = pdi * pdamp(kk)
+               scale3 = 1.0d0
+               scale5 = 1.0d0
+               scale7 = 1.0d0
+               if (damp .ne. 0.0d0) then
+                  pgamma = min(ddi,dirdamp(kk))
+                  damp = pgamma * (r/damp)**(1.5d0)
+                  if (damp .lt. 50.0d0) then
+                     expdamp = exp(-damp)
+                     scale3 = 1.0d0 - expdamp
+                     scale5 = 1.0d0 - expdamp*(1.0d0+0.5d0*damp)
+                     scale7 = 1.0d0 - expdamp*(1.0d0+0.65d0*damp
+     &                                   +0.15d0*damp**2)
                   end if
                end if
                rr3 = scale3 / (r*r2)
@@ -3323,6 +3448,9 @@ c
          if (use_thole) then
             pdi = pdamp(ii)
             pti = thole(ii)
+         else if (use_dirdamp) then
+            pdi = pdamp(ii)
+            pti = thole(ii)
          else if (use_chgpen) then
             corei = pcore(ii)
             vali = pval(ii)
@@ -3473,7 +3601,7 @@ c
 c
 c     find the field components for Thole polarization damping
 c
-            if (use_thole) then
+            if (use_thole .or. use_dirdamp) then
                scale3 = 1.0d0
                scale5 = 1.0d0
                damp = pdi * pdamp(kk)
@@ -4432,6 +4560,10 @@ c
                write (ikey,200)  it,polarity(i),thole(i),
      &                           (pgrp(j,it),j=1,k)
   200          format ('polarize',7x,i5,5x,2f11.4,2x,20i5)
+            else if (use_dirdamp) then
+               write (ikey,205)  it,polarity(i),thole(i),
+     &                           dirdamp(i),(pgrp(j,it),j=1,k)
+  205          format ('polarize',7x,i5,5x,3f11.4,2x,20i5)
             else if (use_chgpen) then
                write (ikey,210)  it,polarity(i),(pgrp(j,it),j=1,k)
   210          format ('polarize',7x,i5,5x,f11.4,6x,20i7)
